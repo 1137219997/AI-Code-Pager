@@ -1,14 +1,15 @@
-/* 1. 强行删除 nRF52840DK 官方预设的硬件，释放被占用的 GPIO */
-/delete-node/ &leds;
-/delete-node/ &buttons;
-
 / {
+    /* 1. 在根节点内删除官方开发板预设的硬件，释放被占用的 GPIO */
+    /delete-node/ leds;
+    /delete-node/ buttons;
+    /delete-node/ pwmleds;
+
     chosen {
         zephyr,display = &st7789_disp;
         zephyr,keyboard-scan = &kscan_matrix;
     };
 
-    /* 外部 VCC 截止控制，开机自动拉高 P0.13 给屏幕供电 */
+    /* 外部 VCC 截止控制，开机自动输出 3.3V 给屏幕供电 */
     vcc_ext: vcc_ext_regulator {
         compatible = "regulator-fixed";
         regulator-name = "vcc_ext";
@@ -50,16 +51,15 @@
         group1 {
             psels = <NRF_PSEL(SPIM_SCK, 1, 11)>,
                     <NRF_PSEL(SPIM_MOSI, 0, 9)>;
-            low-power-enable; /* 睡眠时开启低功耗 */
+            low-power-enable;
         };
     };
 };
 
-/* 3. 挂载屏幕 */
+/* 3. 挂载 ST7789 屏幕 */
 &spi1 {
     status = "okay";
     cs-gpios = <&gpio1 13 GPIO_ACTIVE_LOW>;
-    /* 严格对应官方板子的要求：传入两组状态 */
     pinctrl-0 = <&spi1_default>;
     pinctrl-1 = <&spi1_sleep>;
     pinctrl-names = "default", "sleep";
