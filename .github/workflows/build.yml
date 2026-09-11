@@ -9,25 +9,27 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ghcr.io/zephyrproject-rtos/ci:v0.26.5
+    container: 
+      image: ghcr.io/zephyrproject-rtos/ci:v0.26.5
+    env:
+      # 显式指定 Zephyr SDK 的安装路径，解决 CMake 报错
+      ZEPHYR_SDK_INSTALL_DIR: /opt/toolchains/zephyr-sdk-0.16.5
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        # 移除 path: app，将代码直接拉取到默认的工作区根目录
 
       - name: Initialize West Workspace
         run: |
-          west init -l .  # 改为初始化当前根目录
+          west init -l .
           west update
           west zephyr-export
 
-      - name: Build Firmware (Pure nRF52840)
+      - name: Build Firmware (nRF52840)
         run: |
           west build -b nrf52840dk_nrf52840 app
 
       - name: Generate UF2 Package
         run: |
-          # 修正为 west update 下载后的相对路径
           python3 zephyr/scripts/build/uf2conv.py -c -b 0x1000 -f 0xADA52840 \
             build/zephyr/zephyr.hex -o build/zephyr/ai_pager.uf2
 
