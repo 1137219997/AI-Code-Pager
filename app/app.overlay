@@ -1,10 +1,14 @@
+/* 1. 强行删除 nRF52840DK 官方预设的硬件，释放被占用的 GPIO */
+/delete-node/ &leds;
+/delete-node/ &buttons;
+
 / {
     chosen {
         zephyr,display = &st7789_disp;
         zephyr,keyboard-scan = &kscan_matrix;
     };
 
-    /* 开启 P0.13 (VCC外部截止控制)，开机自动输出 3.3V 给屏幕供电 */
+    /* 外部 VCC 截止控制，开机自动拉高 P0.13 给屏幕供电 */
     vcc_ext: vcc_ext_regulator {
         compatible = "regulator-fixed";
         regulator-name = "vcc_ext";
@@ -21,7 +25,7 @@
         steps-per-period = <4>;
     };
 
-    /* 3x4 矩阵按键 (包含拨杆的5个方向和6个宏按键) */
+    /* 3x4 矩阵按键 */
     kscan_matrix: kscan_matrix {
         compatible = "gpio-kscan";
         row-gpios = <&gpio0 17 GPIO_ACTIVE_HIGH>,
@@ -34,12 +38,31 @@
     };
 };
 
-/* 挂载 ST7789 屏幕到 SPI1 总线 */
+/* 2. 补全 SPI 硬件的正常态(default)与休眠态(sleep)引脚定义 */
+&pinctrl {
+    spi1_default: spi1_default {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 1, 11)>,  /* P1.11 */
+                    <NRF_PSEL(SPIM_MOSI, 0, 9)>;  /* P0.09 */
+        };
+    };
+    spi1_sleep: spi1_sleep {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 1, 11)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 9)>;
+            low-power-enable; /* 睡眠时开启低功耗 */
+        };
+    };
+};
+
+/* 3. 挂载屏幕 */
 &spi1 {
     status = "okay";
-    cs-gpios = <&gpio1 13 GPIO_ACTIVE_LOW>; /* P1.13 */
+    cs-gpios = <&gpio1 13 GPIO_ACTIVE_LOW>;
+    /* 严格对应官方板子的要求：传入两组状态 */
     pinctrl-0 = <&spi1_default>;
-    pinctrl-names = "default";
+    pinctrl-1 = <&spi1_sleep>;
+    pinctrl-names = "default", "sleep";
 
     st7789_disp: st7789@0 {
         compatible = "sitronix,st7789v";
@@ -48,7 +71,7 @@
         cmd-data-gpios = <&gpio0 10 GPIO_ACTIVE_LOW>; /* P0.10 */
         width = <170>;
         height = <320>;
-        x-offset = <35>;  /* 1.9寸 170x320 屏幕常规偏移量 */
+        x-offset = <35>;  
         y-offset = <0>;
         vcom = <0x19>;
         gctrl = <0x35>;
@@ -63,15 +86,5 @@
         pwctrl1-param = [a4 a1];
         pvgam-param = [d0 04 0d 11 13 2b 3f 54 4c 18 0d 0b 1f 23];
         nvgam-param = [d0 04 0c 11 13 2c 3f 44 51 2f 1f 1f 20 23];
-    };
-};
-
-/* 强制重定向 SPI1 硬件引脚 */
-&pinctrl {
-    spi1_default: spi1_default {
-        group1 {
-            psels = <NRF_PSEL(SPIM_SCK, 1, 11)>,  /* P1.11 */
-                    <NRF_PSEL(SPIM_MOSI, 0, 9)>;  /* P0.09 */
-        };
     };
 };
