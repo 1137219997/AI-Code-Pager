@@ -21,9 +21,9 @@ jobs:
           west update
           west zephyr-export
 
-      - name: Build Firmware (nice_nano_v2)
+      - name: Build Firmware (Pure nRF52840)
         run: |
-          west build -b nice_nano_v2 app
+          west build -b nrf52840dk_nrf52840 app
 
       - name: Generate UF2 Package
         run: |
