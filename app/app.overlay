@@ -1,9 +1,9 @@
-/ {
-    /* 1. 在根节点内删除官方开发板预设的硬件，释放被占用的 GPIO */
-    /delete-node/ leds;
-    /delete-node/ buttons;
-    /delete-node/ pwmleds;
+/* 1. 禁用官方开发板预设的外设，优雅地释放 GPIO */
+&leds { status = "disabled"; };
+&pwmleds { status = "disabled"; };
+&buttons { status = "disabled"; };
 
+/ {
     chosen {
         zephyr,display = &st7789_disp;
         zephyr,keyboard-scan = &kscan_matrix;
