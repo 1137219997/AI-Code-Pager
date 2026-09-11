@@ -1,0 +1,39 @@
+name: Build Zephyr Firmware
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: ghcr.io/zephyrproject-rtos/ci:v0.26.5
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          path: app
+
+      - name: Initialize West Workspace
+        run: |
+          west init -l app
+          west update
+          west zephyr-export
+
+      - name: Build Firmware (nice_nano_v2)
+        # SuperMini NRF52840 与 nice_nano_v2 硬件布局与针脚完全兼容
+        run: |
+          west build -b nice_nano_v2 app
+
+      - name: Generate UF2 Package
+        run: |
+          python3 /opt/zephyr-sdk/zephyr/scripts/build/uf2conv.py -c -b 0x1000 -f 0xADA52840 \
+            build/zephyr/zephyr.hex -o build/zephyr/ai_pager.uf2
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: AI_Pager_Firmware
+          path: build/zephyr/ai_pager.uf2
