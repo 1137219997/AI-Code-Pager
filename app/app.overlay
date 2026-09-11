@@ -1,15 +1,26 @@
-/* 1. 禁用官方开发板预设的外设，优雅地释放 GPIO */
-&leds { status = "disabled"; };
-&pwmleds { status = "disabled"; };
-&buttons { status = "disabled"; };
+/* 1. 优雅禁用官方板载外设，保留别名依赖，释放引脚 */
+&{/leds} { status = "disabled"; };
+&{/buttons} { status = "disabled"; };
+&{/pwmleds} { status = "disabled"; };
+
+/* 2. 禁用所有默认的硬件通信总线，彻底释放 P0.06, P0.08 等隐藏冲突引脚 */
+&uart0 { status = "disabled"; };
+&uart1 { status = "disabled"; };
+&i2c0 { status = "disabled"; };
+&i2c1 { status = "disabled"; };
+&spi0 { status = "disabled"; };
+&spi2 { status = "disabled"; };
+&spi3 { status = "disabled"; };
+&qspi { status = "disabled"; };
 
 / {
     chosen {
         zephyr,display = &st7789_disp;
         zephyr,keyboard-scan = &kscan_matrix;
+        zephyr,console = &cdc_acm_uart0; /* 将系统的日志和通信重定向到 USB 数据线 */
     };
 
-    /* 外部 VCC 截止控制，开机自动输出 3.3V 给屏幕供电 */
+    /* 外部 VCC 截止控制，开机自动拉高 P0.13 给屏幕供电 */
     vcc_ext: vcc_ext_regulator {
         compatible = "regulator-fixed";
         regulator-name = "vcc_ext";
@@ -18,7 +29,7 @@
         regulator-always-on;
     };
 
-    /* RKJXT 旋转编码器 (A/B相) */
+    /* RKJXT 旋转编码器 (A/B相，占用原UART引脚) */
     encoder: encoder {
         compatible = "gpio-qdec";
         gpios = <&gpio0 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>,
@@ -39,7 +50,14 @@
     };
 };
 
-/* 2. 补全 SPI 硬件的正常态(default)与休眠态(sleep)引脚定义 */
+/* 3. 开启 USB CDC 虚拟串口 */
+&zephyr_udc0 {
+    cdc_acm_uart0: cdc_acm_uart0 {
+        compatible = "zephyr,cdc-acm-uart";
+    };
+};
+
+/* 4. 配置 SPI1 硬件引脚 */
 &pinctrl {
     spi1_default: spi1_default {
         group1 {
@@ -56,7 +74,7 @@
     };
 };
 
-/* 3. 挂载 ST7789 屏幕 */
+/* 5. 挂载 ST7789 屏幕 */
 &spi1 {
     status = "okay";
     cs-gpios = <&gpio1 13 GPIO_ACTIVE_LOW>;
