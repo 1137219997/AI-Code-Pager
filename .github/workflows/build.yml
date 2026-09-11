@@ -13,23 +13,22 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        with:
-          path: app
+        # 移除 path: app，将代码直接拉取到默认的工作区根目录
 
       - name: Initialize West Workspace
         run: |
-          west init -l app
+          west init -l .  # 改为初始化当前根目录
           west update
           west zephyr-export
 
       - name: Build Firmware (nice_nano_v2)
-        # SuperMini NRF52840 与 nice_nano_v2 硬件布局与针脚完全兼容
         run: |
           west build -b nice_nano_v2 app
 
       - name: Generate UF2 Package
         run: |
-          python3 /opt/zephyr-sdk/zephyr/scripts/build/uf2conv.py -c -b 0x1000 -f 0xADA52840 \
+          # 修正为 west update 下载后的相对路径
+          python3 zephyr/scripts/build/uf2conv.py -c -b 0x1000 -f 0xADA52840 \
             build/zephyr/zephyr.hex -o build/zephyr/ai_pager.uf2
 
       - name: Upload Artifacts
