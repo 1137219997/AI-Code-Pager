@@ -1,9 +1,10 @@
-/* 1. 优雅禁用官方板载外设，保留别名依赖，释放引脚 */
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+/* Disable board peripherals that are not used by this application. */
 &{/leds} { status = "disabled"; };
 &{/buttons} { status = "disabled"; };
 &{/pwmleds} { status = "disabled"; };
 
-/* 2. 禁用所有默认的硬件通信总线，彻底释放 P0.06, P0.08 等隐藏冲突引脚 */
 &uart0 { status = "disabled"; };
 &uart1 { status = "disabled"; };
 &i2c0 { status = "disabled"; };
@@ -16,11 +17,9 @@
 / {
     chosen {
         zephyr,display = &st7789_disp;
-        zephyr,keyboard-scan = &kscan_matrix;
-        zephyr,console = &cdc_acm_uart0; /* 将系统的日志和通信重定向到 USB 数据线 */
+        zephyr,console = &cdc_acm_uart0;
     };
 
-    /* 外部 VCC 截止控制，开机自动拉高 P0.13 给屏幕供电 */
     vcc_ext: vcc_ext_regulator {
         compatible = "regulator-fixed";
         regulator-name = "vcc_ext";
@@ -29,43 +28,31 @@
         regulator-always-on;
     };
 
-    /* RKJXT 旋转编码器 (A/B相，占用原UART引脚) */
     encoder: encoder {
         compatible = "gpio-qdec";
         gpios = <&gpio0 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>,
                 <&gpio0 8 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
         steps-per-period = <4>;
-    };
-
-    /* 3x4 矩阵按键 */
-    kscan_matrix: kscan_matrix {
-        compatible = "gpio-kscan";
-        row-gpios = <&gpio0 17 GPIO_ACTIVE_HIGH>,
-                    <&gpio0 20 GPIO_ACTIVE_HIGH>,
-                    <&gpio0 22 GPIO_ACTIVE_HIGH>;
-        col-gpios = <&gpio0 24 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>,
-                    <&gpio1 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>,
-                    <&gpio0 11 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>,
-                    <&gpio1 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+        zephyr,axis = <INPUT_REL_WHEEL>;
+        sample-time-us = <2000>;
+        idle-timeout-ms = <200>;
     };
 };
 
-/* 3. 开启 USB CDC 虚拟串口 */
 &zephyr_udc0 {
     cdc_acm_uart0: cdc_acm_uart0 {
         compatible = "zephyr,cdc-acm-uart";
     };
 };
 
-/* 4. 配置 SPI1 硬件引脚 */
 &pinctrl {
-    spi1_default: spi1_default {
+    spi1_custom_default: spi1_custom_default {
         group1 {
-            psels = <NRF_PSEL(SPIM_SCK, 1, 11)>,  /* P1.11 */
-                    <NRF_PSEL(SPIM_MOSI, 0, 9)>;  /* P0.09 */
+            psels = <NRF_PSEL(SPIM_SCK, 1, 11)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 9)>;
         };
     };
-    spi1_sleep: spi1_sleep {
+    spi1_custom_sleep: spi1_custom_sleep {
         group1 {
             psels = <NRF_PSEL(SPIM_SCK, 1, 11)>,
                     <NRF_PSEL(SPIM_MOSI, 0, 9)>;
@@ -74,22 +61,21 @@
     };
 };
 
-/* 5. 挂载 ST7789 屏幕 */
 &spi1 {
     status = "okay";
     cs-gpios = <&gpio1 13 GPIO_ACTIVE_LOW>;
-    pinctrl-0 = <&spi1_default>;
-    pinctrl-1 = <&spi1_sleep>;
+    pinctrl-0 = <&spi1_custom_default>;
+    pinctrl-1 = <&spi1_custom_sleep>;
     pinctrl-names = "default", "sleep";
 
     st7789_disp: st7789@0 {
         compatible = "sitronix,st7789v";
         reg = <0>;
         spi-max-frequency = <24000000>;
-        cmd-data-gpios = <&gpio0 10 GPIO_ACTIVE_LOW>; /* P0.10 */
+        cmd-data-gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
         width = <170>;
         height = <320>;
-        x-offset = <35>;  
+        x-offset = <35>;
         y-offset = <0>;
         vcom = <0x19>;
         gctrl = <0x35>;
@@ -104,5 +90,7 @@
         pwctrl1-param = [a4 a1];
         pvgam-param = [d0 04 0d 11 13 2b 3f 54 4c 18 0d 0b 1f 23];
         nvgam-param = [d0 04 0c 11 13 2c 3f 44 51 2f 1f 1f 20 23];
+        ram-param = [00 f0];
+        rgb-param = [cd 08 14];
     };
 };
