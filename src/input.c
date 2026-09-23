@@ -63,8 +63,9 @@ static void report_encoder(struct k_work *work)
 {
     atomic_val_t steps = atomic_set(&encoder_pending, 0);
     uint8_t input_id = steps > 0 ? APP_ENCODER_CW : APP_ENCODER_CCW;
+    atomic_val_t step_count = steps < 0 ? -steps : steps;
 
-    for (atomic_val_t i = 0; i < ABS(steps); ++i) {
+    for (atomic_val_t i = 0; i < step_count; ++i) {
         app_on_input(input_id, true);
         app_on_input(input_id, false);
     }

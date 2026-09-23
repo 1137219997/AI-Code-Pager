@@ -65,6 +65,17 @@ static const uint8_t keyboard_report_map[] = {
     0xc0,             /* End Collection */
 };
 
+static const struct bt_data advertising_data[] = {
+    BT_DATA_BYTES(BT_DATA_FLAGS, BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR),
+    BT_DATA_BYTES(BT_DATA_UUID16_ALL, BT_UUID_16_ENCODE(0x1812)),
+    BT_DATA_BYTES(BT_DATA_UUID128_ALL, PAGER_UUID_SERVICE_VAL),
+};
+
+static const struct bt_data scan_response_data[] = {
+    BT_DATA(BT_DATA_NAME_COMPLETE, CONFIG_BT_DEVICE_NAME,
+            sizeof(CONFIG_BT_DEVICE_NAME) - 1),
+};
+
 static ssize_t read_const(struct bt_conn *conn, const struct bt_gatt_attr *attr,
                           void *buf, uint16_t len, uint16_t offset,
                           const void *data, uint16_t data_len)
@@ -228,18 +239,9 @@ int app_ble_init(void)
 
 int app_ble_start_advertising(void)
 {
-    static const struct bt_data ad[] = {
-        BT_DATA_BYTES(BT_DATA_FLAGS, BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR),
-        BT_DATA_BYTES(BT_DATA_UUID16_ALL, BT_UUID_16_ENCODE(0x1812)),
-        BT_DATA_BYTES(BT_DATA_UUID128_ALL, PAGER_UUID_SERVICE_VAL),
-    };
-    static const struct bt_data sd[] = {
-        BT_DATA(BT_DATA_NAME_COMPLETE, CONFIG_BT_DEVICE_NAME,
-                sizeof(CONFIG_BT_DEVICE_NAME) - 1),
-    };
-
-    int err = bt_le_adv_start(BT_LE_ADV_CONN_FAST_1, ad, ARRAY_SIZE(ad),
-                              sd, ARRAY_SIZE(sd));
+    int err = bt_le_adv_start(BT_LE_ADV_CONN, advertising_data,
+                              ARRAY_SIZE(advertising_data), scan_response_data,
+                              ARRAY_SIZE(scan_response_data));
     if (err && err != -EALREADY) {
         LOG_ERR("Advertising failed (%d)", err);
     }
