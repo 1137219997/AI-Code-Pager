@@ -1,0 +1,46 @@
+/dts-v1/;
+#include <nordic/nrf52840_qiaa.dtsi>
+
+/ {
+    model = "ProMicro-compatible nRF52840";
+    compatible = "custom,promicro-nrf52840";
+
+    chosen {
+        zephyr,sram = &sram0;
+        zephyr,flash = &flash0;
+        zephyr,code-partition = &code_partition;
+    };
+};
+
+&gpio0 { status = "okay"; };
+&gpio1 { status = "okay"; };
+
+&flash0 {
+    partitions {
+        compatible = "fixed-partitions";
+        #address-cells = <1>;
+        #size-cells = <1>;
+
+        bootloader_gap: partition@0 {
+            label = "softdevice-gap";
+            reg = <0x00000000 0x00026000>;
+            read-only;
+        };
+
+        code_partition: partition@26000 {
+            label = "code-partition";
+            reg = <0x00026000 0x000c6000>;
+        };
+
+        storage_partition: partition@ec000 {
+            label = "storage";
+            reg = <0x000ec000 0x00008000>;
+        };
+
+        boot_partition: partition@f4000 {
+            label = "adafruit-boot";
+            reg = <0x000f4000 0x0000c000>;
+            read-only;
+        };
+    };
+};

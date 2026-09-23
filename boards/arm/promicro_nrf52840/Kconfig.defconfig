@@ -1,0 +1,12 @@
+if BOARD_PROMICRO_NRF52840
+
+config BOARD
+    default "promicro_nrf52840"
+
+config BT_CTLR
+    default BT
+
+config NRF_RTC_TIMER
+    default y
+
+endif

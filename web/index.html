@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI-Code-Pager Console</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="console-shell">
+    <header>
+      <div>
+        <p class="eyebrow">DESKTOP COMPANION TERMINAL</p>
+        <h1>AI-Code-Pager</h1>
+      </div>
+      <div class="connection-box">
+        <span id="statusDot" class="dot"></span>
+        <span id="statusText">未连接</span>
+        <button id="connectButton" class="primary">连接传呼机</button>
+      </div>
+    </header>
+
+    <section class="grid">
+      <article class="panel keymap-panel">
+        <div class="panel-title">
+          <div><span>01</span><h2>实时改键矩阵</h2></div>
+          <p>更改立即生效，点击保存后写入设备 Flash。</p>
+        </div>
+        <div class="key-grid" id="keyGrid"></div>
+        <div class="button-row">
+          <button id="readKeymap">从设备读取</button>
+          <button id="saveKeymap" class="primary">保存到设备</button>
+          <button id="resetKeymap" class="danger">恢复默认</button>
+        </div>
+      </article>
+
+      <article class="panel pet-panel">
+        <div class="panel-title">
+          <div><span>02</span><h2>宠物状态</h2></div>
+          <p>将 AI 工作状态映射成桌面陪伴动画。</p>
+        </div>
+        <div class="pet-preview">
+          <img id="petImage" src="../assets/pet/scratch/00.png" alt="绿色像素幼龙">
+          <div>
+            <strong id="petLabel">挠头</strong>
+            <small>绿色像素幼龙 MOSS-01</small>
+          </div>
+        </div>
+        <div class="state-buttons" id="stateButtons">
+          <button data-state="0" data-name="scratch" class="selected">挠头</button>
+          <button data-state="1" data-name="point_down">向下指</button>
+          <button data-state="2" data-name="cheer">欢呼</button>
+          <button data-state="3" data-name="sleep">睡觉</button>
+        </div>
+      </article>
+
+      <article class="panel message-panel">
+        <div class="panel-title">
+          <div><span>03</span><h2>信息流推送</h2></div>
+          <p>UTF-8 文本会按兼容 ATT 长度分片，在屏幕右栏滚动显示。</p>
+        </div>
+        <textarea id="messageInput" placeholder="例如：Codex build complete. Press enter to approve tests."></textarea>
+        <div class="message-footer">
+          <span id="charCount">0 / 480 bytes</span>
+          <button id="sendMessage" class="primary">推送到屏幕</button>
+        </div>
+      </article>
+
+      <article class="panel events-panel">
+        <div class="panel-title">
+          <div><span>04</span><h2>物理事件</h2></div>
+          <p>按键和旋钮事件由设备实时回传。</p>
+        </div>
+        <ol id="eventLog"><li class="empty">等待设备输入…</li></ol>
+      </article>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
