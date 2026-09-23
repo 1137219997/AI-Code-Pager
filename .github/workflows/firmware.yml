@@ -62,7 +62,8 @@ jobs:
           path: app
 
       - name: Cache Zephyr workspace
-        uses: actions/cache@v4
+        id: zephyr-cache
+        uses: actions/cache/restore@v4
         with:
           path: |
             .west
@@ -143,3 +144,15 @@ jobs:
             build/zephyr/zephyr.dts
           if-no-files-found: ignore
           retention-days: 7
+
+      - name: Save Zephyr workspace cache
+        if: always() && steps.zephyr-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            .west
+            zephyr
+            modules
+            bootloader
+            tools
+          key: zephyr-3.7.1-${{ hashFiles('app/west.yml') }}
