@@ -38,21 +38,14 @@ jobs:
 
       - name: Verify scripts and web console
         run: |
-          python -m py_compile tools/generate_pet_assets.py host/pager_cli.py
+          python -m py_compile \
+            tools/generate_pet_assets.py \
+            tools/verify_generated_assets.py \
+            host/pager_cli.py
           node --check web/app.js
 
       - name: Verify generated assets are reproducible
-        run: |
-          cp src/assets/pet_animations.c /tmp/pet_animations.before.c
-          find assets/pet -name '*.png' -type f -print0 \
-            | sort -z \
-            | xargs -0 sha256sum > /tmp/pet_png.before.sha256
-          python tools/generate_pet_assets.py
-          cmp /tmp/pet_animations.before.c src/assets/pet_animations.c
-          find assets/pet -name '*.png' -type f -print0 \
-            | sort -z \
-            | xargs -0 sha256sum > /tmp/pet_png.after.sha256
-          cmp /tmp/pet_png.before.sha256 /tmp/pet_png.after.sha256
+        run: python tools/verify_generated_assets.py
 
   firmware:
     name: Zephyr 3.7.1 / nRF52840
