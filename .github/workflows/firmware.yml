@@ -81,6 +81,19 @@ jobs:
           west update --narrow -o=--depth=1
           west zephyr-export
 
+      - name: Configure Zephyr SDK
+        shell: bash
+        run: |
+          sdk_dir="$(find /opt/toolchains -maxdepth 1 -type d \
+            -name 'zephyr-sdk-0.16.*' -print | sort -V | tail -n 1)"
+          if [[ -z "$sdk_dir" ]]; then
+            echo "Zephyr SDK 0.16.x was not found in /opt/toolchains" >&2
+            find /opt/toolchains -maxdepth 1 -type d -print >&2
+            exit 1
+          fi
+          echo "Using Zephyr SDK: $sdk_dir"
+          echo "ZEPHYR_SDK_INSTALL_DIR=$sdk_dir" >> "$GITHUB_ENV"
+
       - name: Build firmware
         shell: bash
         run: |
