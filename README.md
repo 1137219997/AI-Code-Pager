@@ -158,7 +158,7 @@ host/.venv/bin/python host/pager_cli.py listen
 ## 资源与渲染策略
 
 - 屏幕完整 RGB565 帧缓冲需要约 106 KiB；本工程不分配全帧缓冲；
-- `CONFIG_LV_Z_BUFFER_SIZE=12` 使用约 12 KiB 的单局部绘制缓冲；
+- `CONFIG_LV_Z_VDB_SIZE=12` 使用约 12% 屏幕大小的单局部绘制缓冲（RGB565 下约 13 KiB）；
 - 每帧宠物图为 80×80×2 = 12.5 KiB，16 帧总计 200 KiB，均为只读常量，驻留 Flash；
 - PNG 仅保留为美术源文件，固件链接的是 [pet_animations.c](src/assets/pet_animations.c)；
 - UI 更新通过消息队列进入主线程，BLE 回调与 GPIO work item 不直接调用 LVGL；
