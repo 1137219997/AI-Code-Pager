@@ -216,7 +216,7 @@ host/                    PC 端 Bleak CLI，可接入 agent hooks/自动化脚�
 
 ## 上电验收顺序
 
-1. 不接屏幕，先通过 SWD/RTT 确认固件启动且广播 `AI-Code-Pager`；
+1. 不接屏幕，先通过手机或电脑确认设备广播 `AI-Code-Pager`；
 2. 接屏幕后确认背光、方向和 320×170 画面；若图像偏移，优先调整 overlay 中 `x-offset` / `y-offset`；
 3. 逐个短接输入 GPIO 到 GND，在 Web 事件区确认输入 ID；
 4. 配对为蓝牙键盘，在键盘测试器确认 F13–F18、方向与 Enter；
