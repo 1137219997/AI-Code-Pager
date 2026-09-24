@@ -7,7 +7,6 @@
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/display.h>
-#include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/util.h>
@@ -41,8 +40,6 @@ struct ui_event {
 K_MSGQ_DEFINE(ui_queue, sizeof(struct ui_event), 8, 4);
 
 static const struct device *display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
-static const struct gpio_dt_spec backlight =
-    GPIO_DT_SPEC_GET(DT_ALIAS(backlight), gpios);
 
 static lv_obj_t *pet_anim;
 static lv_obj_t *status_label;
@@ -188,14 +185,6 @@ int app_ui_init(void)
         LOG_ERR("Display is not ready");
         return -ENODEV;
     }
-    if (!gpio_is_ready_dt(&backlight)) {
-        return -ENODEV;
-    }
-    int err = gpio_pin_configure_dt(&backlight, GPIO_OUTPUT_ACTIVE);
-    if (err) {
-        return err;
-    }
-
     lv_obj_t *screen = lv_scr_act();
     show_lcd_self_test(screen);
     lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
