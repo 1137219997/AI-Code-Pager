@@ -2,11 +2,7 @@
 #include <zephyr/dt-bindings/mipi_dbi/mipi_dbi.h>
 #include <zephyr/dt-bindings/pinctrl/nrf-pinctrl.h>
 
-/*
- * Default GPIO map for a generic nRF52840 ProMicro-compatible module.
- * Clones expose different silk-screen names; change only this file when
- * adapting the firmware to a particular PCB revision.
- */
+/* SuperMini nRF52840 ProMicro pin map from ProMicroNRF52840Foot.jpg. */
 
 / {
     chosen {
@@ -50,7 +46,7 @@
     backlight: backlight_control {
         compatible = "gpio-leds";
         backlight_led: bl {
-            gpios = <&gpio0 13 GPIO_ACTIVE_HIGH>;
+            gpios = <&gpio0 11 GPIO_ACTIVE_HIGH>;
             label = "LCD backlight";
         };
     };
@@ -92,18 +88,32 @@
     };
 };
 
+/*
+ * This SuperMini revision gates its board-edge VCC pin with P0.13.
+ * Keep it high from GPIO-controller initialization so the ST7789 is powered
+ * before the display driver sends its reset and initialization sequence.
+ */
+&gpio0 {
+    lcd_vcc_enable: lcd_vcc_enable {
+        gpio-hog;
+        gpios = <13 GPIO_ACTIVE_HIGH>;
+        output-high;
+        line-name = "LCD VCC enable";
+    };
+};
+
 &pinctrl {
     spi1_default: spi1_default {
         group1 {
-            psels = <NRF_PSEL(SPIM_SCK, 0, 20)>,
-                    <NRF_PSEL(SPIM_MOSI, 0, 17)>;
+            psels = <NRF_PSEL(SPIM_SCK, 1, 13)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 10)>;
         };
     };
 
     spi1_sleep: spi1_sleep {
         group1 {
-            psels = <NRF_PSEL(SPIM_SCK, 0, 20)>,
-                    <NRF_PSEL(SPIM_MOSI, 0, 17)>;
+            psels = <NRF_PSEL(SPIM_SCK, 1, 13)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 10)>;
             low-power-enable;
         };
     };

@@ -61,13 +61,6 @@ def dragon_base(frame: int, pose: str) -> Image.Image:
         if frame in (1, 2):
             px(d, (3, 4, 4, 7), YELLOW)
             px(d, (6, 2, 7, 5), YELLOW)
-    elif pose == "point_down":
-        x = [29, 30, 30, 29][frame]
-        px(d, (x-1, 22+bob, x+3, 31), GREEN)
-        px(d, (x+1, 29, x+5, 33), GREEN_LIGHT)
-        px(d, (x+4, 32, x+5, 36), GREEN_LIGHT)
-        px(d, (33, 36, 36, 37), YELLOW)
-        px(d, (34, 37, 35, 38), YELLOW)
     elif pose == "cheer":
         lift = [2, 0, 1, 3][frame]
         px(d, (6, 10-lift+bob, 11, 20+bob), GREEN)
@@ -162,7 +155,7 @@ def emit_c(frames: dict[str, list[Image.Image]]) -> None:
 
 
 def main() -> None:
-    actions = ("scratch", "point_down", "cheer", "sleep")
+    actions = ("scratch", "cheer", "sleep")
     frames: dict[str, list[Image.Image]] = {}
     for action in actions:
         target = PNG_ROOT / action
@@ -173,13 +166,13 @@ def main() -> None:
             frame.save(target / f"{index:02d}.png")
             frames[action].append(frame)
 
-    preview = Image.new("RGBA", (SIZE * 4, SIZE * 4), BG)
+    preview = Image.new("RGBA", (SIZE * 4, SIZE * len(actions)), BG)
     for row, action in enumerate(actions):
         for col, frame in enumerate(frames[action]):
             preview.alpha_composite(frame, (col * SIZE, row * SIZE))
     preview.convert("RGB").save(PREVIEW)
     emit_c(frames)
-    print(f"generated 16 PNG frames, {PREVIEW}, and {C_FILE}")
+    print(f"generated {len(actions) * 4} PNG frames, {PREVIEW}, and {C_FILE}")
 
 
 if __name__ == "__main__":

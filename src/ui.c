@@ -63,9 +63,6 @@ static const char *const input_names[APP_INPUT_COUNT] = {
 static const lv_img_dsc_t *scratch_frames[] = {
     &pet_scratch_0, &pet_scratch_1, &pet_scratch_2, &pet_scratch_3,
 };
-static const lv_img_dsc_t *point_frames[] = {
-    &pet_point_down_0, &pet_point_down_1, &pet_point_down_2, &pet_point_down_3,
-};
 static const lv_img_dsc_t *cheer_frames[] = {
     &pet_cheer_0, &pet_cheer_1, &pet_cheer_2, &pet_cheer_3,
 };
@@ -80,8 +77,7 @@ static void set_pet(enum app_pet_state state)
 
     switch (state) {
     case APP_PET_POINT_DOWN:
-        frames = (const void **)point_frames;
-        duration = 760;
+        /* Keep protocol state 1 compatible after removing this asset. */
         break;
     case APP_PET_CHEER:
         frames = (const void **)cheer_frames;
@@ -100,6 +96,34 @@ static void set_pet(enum app_pet_state state)
     lv_animimg_set_duration(pet_anim, duration);
     lv_animimg_set_repeat_count(pet_anim, LV_ANIM_REPEAT_INFINITE);
     lv_animimg_start(pet_anim);
+}
+
+static void show_lcd_self_test(lv_obj_t *screen)
+{
+    static const uint32_t colors[] = {
+        0xff0000, 0x00ff00, 0x0000ff, 0xffffff,
+    };
+
+    lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
+    lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, 0);
+    lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
+
+    for (size_t i = 0; i < ARRAY_SIZE(colors); ++i) {
+        lv_obj_t *bar = lv_obj_create(screen);
+        lv_obj_set_pos(bar, i * 80, 0);
+        lv_obj_set_size(bar, 80, 170);
+        lv_obj_set_style_bg_color(bar, lv_color_hex(colors[i]), 0);
+        lv_obj_set_style_bg_opa(bar, LV_OPA_COVER, 0);
+        lv_obj_set_style_border_width(bar, 0, 0);
+        lv_obj_set_style_radius(bar, 0, 0);
+        lv_obj_set_style_pad_all(bar, 0, 0);
+        lv_obj_clear_flag(bar, LV_OBJ_FLAG_SCROLLABLE);
+    }
+
+    display_blanking_off(display_dev);
+    lv_refr_now(NULL);
+    k_sleep(K_MSEC(1500));
+    lv_obj_clean(screen);
 }
 
 static void update_menu(void)
@@ -173,6 +197,7 @@ int app_ui_init(void)
     }
 
     lv_obj_t *screen = lv_scr_act();
+    show_lcd_self_test(screen);
     lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_bg_color(screen, COLOR_BG, 0);
     lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, 0);

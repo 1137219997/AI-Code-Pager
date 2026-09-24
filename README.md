@@ -6,7 +6,7 @@ AI-Code-Pager 是一套面向 nRF52840 ProMicro 兼容板的 Zephyr 固件与 We
 - 自定义 BLE 外设：浏览器可以实时改键、推送 AI 文本、切换宠物动作并接收物理输入事件；
 - 复古电子宠物终端：1.9 寸 ST7789 屏幕左侧播放绿色像素幼龙，右侧显示信息流和审批菜单。
 
-![四组宠物动作预览](assets/pet/preview.png)
+![三组宠物动作预览](assets/pet/preview.png)
 
 ## 已实现功能
 
@@ -17,7 +17,7 @@ AI-Code-Pager 是一套面向 nRF52840 ProMicro 兼容板的 Zephyr 固件与 We
 - 自定义 GATT 服务，支持实时改键、保存、恢复默认、文本推送、宠物状态和输入事件；
 - Settings/NVS 持久化键位；
 - LVGL 左右分栏界面，使用约 12 KiB 局部绘制缓冲；
-- 4 组 × 4 帧、80×80 的透明 PNG：挠头、向下指、欢呼、睡觉；
+- 3 组 × 4 帧、80×80 的透明 PNG：挠头、欢呼、睡觉；
 - PNG 预烘焙为 LVGL `TRUE_COLOR` RGB565 C 数组，运行时不解码；
 - 无构建依赖的 Web Bluetooth 上位机。
 
@@ -28,13 +28,15 @@ AI-Code-Pager 是一套面向 nRF52840 ProMicro 兼容板的 Zephyr 固件与 We
 | 屏幕针脚 | 功能 | 默认 nRF52840 GPIO |
 |---|---|---:|
 | 1 GND | 地 | GND |
-| 2 VCC | 3.3 V | 3V3 |
-| 3 SCL | SPI 时钟 | P0.20 |
-| 4 SDA | SPI MOSI | P0.17 |
+| 2 VCC | 受 P0.13 使能的 3.3 V | VCC |
+| 3 SCL | SPI 时钟 | P1.13（D15） |
+| 4 SDA | SPI MOSI | P0.10（D16） |
 | 5 RES | 低有效复位 | P1.00 |
 | 6 DC | 数据/命令 | P0.24 |
 | 7 CS | 低有效片选 | P0.22 |
-| 8 BLK | 背光控制，高亮/低灭 | P0.13 |
+| 8 BLK | 背光控制，高亮/低灭 | P0.11（D7） |
+
+> 当前 overlay 针对 `ProMicroNRF52840Foot.jpg` 中的 SuperMini 板。P0.13 在开机时拉高，使能板边 VCC 供电；屏幕 BLK 则由 D7/P0.11 单独控制。请勿将屏幕接到 BATTERY+ 或 BOOST。
 
 默认输入映射：
 
@@ -159,7 +161,7 @@ host/.venv/bin/python host/pager_cli.py listen
 
 - 屏幕完整 RGB565 帧缓冲需要约 106 KiB；本工程不分配全帧缓冲；
 - `CONFIG_LV_Z_VDB_SIZE=12` 使用约 12% 屏幕大小的单局部绘制缓冲（RGB565 下约 13 KiB）；
-- 每帧宠物图为 80×80×2 = 12.5 KiB，16 帧总计 200 KiB，均为只读常量，驻留 Flash；
+- 每帧宠物图为 80×80×2 = 12.5 KiB，12 帧总计 150 KiB，均为只读常量，驻留 Flash；
 - PNG 仅保留为美术源文件，固件链接的是 [pet_animations.c](src/assets/pet_animations.c)；
 - UI 更新通过消息队列进入主线程，BLE 回调与 GPIO work item 不直接调用 LVGL；
 - 左侧 Animimg 只使宠物包围盒失效，右侧文本变化也只刷新对应对象，避免全屏重绘。
@@ -193,7 +195,7 @@ TX      12345678-1234-5678-1234-56789abcdef2  Notify
 | PC→设备 | `03` | 无，恢复默认 |
 | PC→设备 | `04` | 无，请求键位表 |
 | PC→设备 | `10` | `flags, UTF-8 bytes`；flags bit0=开始、bit1=结束 |
-| PC→设备 | `11` | `state`：0 挠头、1 向下指、2 欢呼、3 睡觉 |
+| PC→设备 | `11` | `state`：0 挠头、1 兼容状态（回退为挠头）、2 欢呼、3 睡觉 |
 | PC→设备 | `20` | 无，ping |
 | 设备→PC | `80` | `input_id, pressed` |
 | 设备→PC | `81` | `request_opcode, errno` |
@@ -207,7 +209,7 @@ HID `modifiers` 使用标准位：bit0 Left Ctrl、bit1 Left Shift、bit2 Left A
 boards/                  自定义 nRF52840 板与 GPIO/display overlay
 src/                     BLE、HID、输入、存储、协议与 LVGL UI
 src/assets/              预烘焙 RGB565 C 数组
-assets/pet/              16 张透明 PNG 与预览图
+assets/pet/              12 张透明 PNG 与预览图
 tools/                   可复现素材生成/转换脚本
 web/                     Web Bluetooth 上位机
 host/                    PC 端 Bleak CLI，可接入 agent hooks/自动化脚本
@@ -217,10 +219,10 @@ host/                    PC 端 Bleak CLI，可接入 agent hooks/自动化脚�
 ## 上电验收顺序
 
 1. 不接屏幕，先通过手机或电脑确认设备广播 `AI-Code-Pager`；
-2. 接屏幕后确认背光、方向和 320×170 画面；若图像偏移，优先调整 overlay 中 `x-offset` / `y-offset`；
+2. 接屏幕后首先应显示 1.5 秒红/绿/蓝/白色块，然后进入 320×170 主界面；若图像偏移，优先调整 overlay 中 `x-offset` / `y-offset`；
 3. 逐个短接输入 GPIO 到 GND，在 Web 事件区确认输入 ID；
 4. 配对为蓝牙键盘，在键盘测试器确认 F13–F18、方向与 Enter；
 5. 修改一个键并保存，断电重启后确认键位仍保留；
-6. 推送英文/ASCII 文本并依次切换四组动画。
+6. 推送英文/ASCII 文本并依次切换挠头、欢呼和睡觉三组动画；兼容状态 1 会回退为挠头。
 
 目前仓库已经通过素材重建、Python/JavaScript 语法检查、GitHub Actions 配置静态检查和浏览器布局验收。此工作区没有安装 Zephyr SDK，因此应由新增的 GitHub Actions 工作流完成首次固件编译；实机电气验收仍需在实际 PCB 上完成。

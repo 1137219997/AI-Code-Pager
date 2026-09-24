@@ -41,6 +41,7 @@ jobs:
           python -m py_compile \
             tools/generate_pet_assets.py \
             tools/verify_generated_assets.py \
+            tools/verify_legacy_uf2.py \
             host/pager_cli.py
           node --check web/app.js
 
@@ -103,6 +104,10 @@ jobs:
             app \
             -- \
             -DBOARD_ROOT="$GITHUB_WORKSPACE/app"
+
+      - name: Verify legacy UF2 address window
+        shell: bash
+        run: python3 app/tools/verify_legacy_uf2.py build/zephyr/zephyr.uf2
 
       - name: Package firmware
         shell: bash
