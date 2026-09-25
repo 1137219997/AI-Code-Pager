@@ -103,7 +103,9 @@ jobs:
             -b promicro_nrf52840/nrf52840 \
             app \
             -- \
-            -DBOARD_ROOT="$GITHUB_WORKSPACE/app"
+            -DBOARD_ROOT="$GITHUB_WORKSPACE/app" \
+            -DCONF_FILE=diagnostic.conf \
+            -DLCD_DIAGNOSTIC_BUILD=ON
 
       - name: Verify legacy UF2 address window
         shell: bash
@@ -125,6 +127,7 @@ jobs:
             echo "workflow_run=$GITHUB_RUN_ID"
             echo "zephyr=v3.7.1"
             echo "board=promicro_nrf52840/nrf52840"
+            echo "profile=lcd-diagnostic"
           } > firmware/build-info.txt
           (cd firmware && sha256sum * > SHA256SUMS.txt)
 

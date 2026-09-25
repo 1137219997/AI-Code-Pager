@@ -1,5 +1,4 @@
 #include <zephyr/dt-bindings/gpio/gpio.h>
-#include <zephyr/dt-bindings/gpio/nordic-nrf-gpio.h>
 #include <zephyr/dt-bindings/mipi_dbi/mipi_dbi.h>
 #include <zephyr/dt-bindings/pinctrl/nrf-pinctrl.h>
 
@@ -54,25 +53,27 @@
 
         lcd0: st7789v@0 {
             compatible = "sitronix,st7789v";
-            mipi-max-frequency = <8000000>;
+            mipi-max-frequency = <1000000>;
             reg = <0>;
+            mipi-cpol;
+            mipi-cpha;
             width = <320>;
             height = <170>;
             x-offset = <0>;
             y-offset = <35>;
-            vcom = <0x19>;
+            vcom = <0x1a>;
             gctrl = <0x35>;
-            vrhs = <0x12>;
+            vrhs = <0x0b>;
             vdvs = <0x20>;
-            mdac = <0x60>;
+            mdac = <0x70>;
             gamma = <0x01>;
             colmod = <0x05>;
             lcm = <0x2c>;
             porch-param = [0c 0c 00 33 33];
             cmd2en-param = [5a 69 02 01];
             pwctrl1-param = [a4 a1];
-            pvgam-param = [d0 04 0d 11 13 2b 3f 54 4c 18 0d 0b 1f 23];
-            nvgam-param = [d0 04 0c 11 13 2c 3f 44 51 2f 1f 1f 20 23];
+            pvgam-param = [00 03 07 08 07 15 2a 44 42 0a 17 18 25 27];
+            nvgam-param = [00 03 08 07 07 23 2a 43 42 09 18 17 25 27];
             ram-param = [00 f0];
             rgb-param = [cd 08 14];
             mipi-mode = <MIPI_DBI_MODE_SPI_4WIRE>;
@@ -93,27 +94,20 @@
         line-name = "LCD VCC enable";
     };
 
-    lcd_backlight_enable: lcd_backlight_enable {
-        gpio-hog;
-        gpios = <6 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_H0H1)>;
-        output-high;
-        line-name = "LCD backlight enable";
-    };
 };
 
 &pinctrl {
     spi1_default: spi1_default {
         group1 {
-            psels = <NRF_PSEL(SPIM_SCK, 1, 13)>,
-                    <NRF_PSEL(SPIM_MOSI, 0, 10)>;
-            nordic,drive-mode = <NRF_DRIVE_H0H1>;
+            psels = <NRF_PSEL(SPIM_SCK, 0, 8)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 6)>;
         };
     };
 
     spi1_sleep: spi1_sleep {
         group1 {
-            psels = <NRF_PSEL(SPIM_SCK, 1, 13)>,
-                    <NRF_PSEL(SPIM_MOSI, 0, 10)>;
+            psels = <NRF_PSEL(SPIM_SCK, 0, 8)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 6)>;
             low-power-enable;
         };
     };

@@ -29,14 +29,20 @@ AI-Code-Pager 是一套面向 nRF52840 ProMicro 兼容板的 Zephyr 固件与 We
 |---|---|---:|
 | 1 GND | 地 | GND |
 | 2 VCC | 受 P0.13 使能的 3.3 V | VCC |
-| 3 SCL | SPI 时钟 | P1.13（D15） |
-| 4 SDA | SPI MOSI | P0.10（D16） |
-| 5 RES | 低有效复位 | P1.00 |
-| 6 DC | 数据/命令 | P0.24 |
-| 7 CS | 低有效片选 | P0.22 |
-| 8 BLK | 背光控制，高亮/低灭 | P0.06（D1） |
+| 3 SCL | SPI 时钟 | P0.08（D0） |
+| 4 SDA | SPI MOSI | P0.06（D1） |
+| 5 RES | 低有效复位 | P1.00（D6） |
+| 6 DC | 数据/命令 | P0.24（D5） |
+| 7 CS | 低有效片选 | P0.22（D4） |
+| 8 BLK | 背光使能 | 直接接 VCC，或悬空 |
 
-> 当前 overlay 针对 `ProMicroNRF52840Foot.jpg` 中的 SuperMini 板。P0.13 和 D1/P0.06 均通过 GPIO Hog 在开机时立即拉高：P0.13 使能板边 VCC 供电，D1/P0.06 使能屏幕 BLK 背光。请勿将屏幕接到 BATTERY+ 或 BOOST。
+> 当前 overlay 针对 `ProMicroNRF52840Foot.jpg` 中的 SuperMini 板。P0.13 通过 GPIO Hog 在开机时立即拉高，用于使能板边 VCC。屏幕模组自带 S8050 背光开关和上拉，当前诊断版不再用 MCU 驱动 BLK；为排除背光控制问题，建议 BLK 直接接 VCC。请勿接到 BATTERY+ 或 BOOST。
+
+### 当前 LCD 诊断固件
+
+GitHub Actions 当前构建的是最小 LCD 诊断固件，不启动 BLE、LVGL、按键或宠物动画。它以 1 MHz、SPI Mode 3 按屏幕厂商 `.INI` 的复位、延时和寄存器顺序初始化 ST7789，并循环显示红、绿、蓝、白四种纯色，每种约 1.5 秒。
+
+烧录前必须按上表重新接线，尤其需要将原先接在 D1 的 BLK 移到 VCC，再把屏幕 SDA 接到 D1。若背光亮但没有循环色块，下一步应使用逻辑分析仪检查 D0、D1、D4、D5、D6，而不是继续调整 LVGL。
 
 默认输入映射：
 
@@ -100,7 +106,9 @@ pip install -r zephyr/scripts/requirements.txt
 
 ```bash
 west build -p always -b promicro_nrf52840/nrf52840 path/to/AI-Code-Pager \
-  -- -DBOARD_ROOT=path/to/AI-Code-Pager
+  -- -DBOARD_ROOT=path/to/AI-Code-Pager \
+     -DCONF_FILE=diagnostic.conf \
+     -DLCD_DIAGNOSTIC_BUILD=ON
 ```
 
 部分使用旧硬件模型的 Zephyr 版本将目标名显示为 `promicro_nrf52840`；以 `west boards | grep promicro` 的结果为准。
