@@ -34,9 +34,9 @@ AI-Code-Pager 是一套面向 nRF52840 ProMicro 兼容板的 Zephyr 固件与 We
 | 5 RES | 低有效复位 | P1.00 |
 | 6 DC | 数据/命令 | P0.24 |
 | 7 CS | 低有效片选 | P0.22 |
-| 8 BLK | 背光控制，高亮/低灭 | P0.11（D7） |
+| 8 BLK | 背光控制，高亮/低灭 | P0.06（D1） |
 
-> 当前 overlay 针对 `ProMicroNRF52840Foot.jpg` 中的 SuperMini 板。P0.13 和 D7/P0.11 均通过 GPIO Hog 在开机时立即拉高：P0.13 使能板边 VCC 供电，D7/P0.11 使能屏幕 BLK 背光。请勿将屏幕接到 BATTERY+ 或 BOOST。
+> 当前 overlay 针对 `ProMicroNRF52840Foot.jpg` 中的 SuperMini 板。P0.13 和 D1/P0.06 均通过 GPIO Hog 在开机时立即拉高：P0.13 使能板边 VCC 供电，D1/P0.06 使能屏幕 BLK 背光。请勿将屏幕接到 BATTERY+ 或 BOOST。
 
 默认输入映射：
 

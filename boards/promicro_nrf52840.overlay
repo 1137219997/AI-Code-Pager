@@ -95,7 +95,7 @@
 
     lcd_backlight_enable: lcd_backlight_enable {
         gpio-hog;
-        gpios = <11 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_H0H1)>;
+        gpios = <6 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_H0H1)>;
         output-high;
         line-name = "LCD backlight enable";
     };
